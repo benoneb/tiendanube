@@ -1,3 +1,8 @@
+output "this_lb_name" {
+  description = "The name of the load balancer we created."
+  value       = concat(aws_lb.this.*.name, [""])[0]
+}
+
 output "this_lb_id" {
   description = "The ID and ARN of the load balancer we created."
   value       = concat(aws_lb.this.*.id, [""])[0]

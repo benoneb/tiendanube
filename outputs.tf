@@ -187,6 +187,11 @@ output "credit_specification_nginx" {
 # ALB Outputs
 ##########################################################
 
+output "this_lb_name" {
+  description = "The ID and ARN of the load balancer we created."
+  value       = module.alb.this_lb_name
+}
+
 output "this_lb_id" {
   description = "The ID and ARN of the load balancer we created."
   value       = module.alb.this_lb_id

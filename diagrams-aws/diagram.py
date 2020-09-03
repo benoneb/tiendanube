@@ -13,13 +13,14 @@ with Diagram("TiendaNube Test", show=False):
         alb = ELB("alb")
 
     with Cluster("web-servers-vpc"):
-        with Cluster("web-servers-subnet"):
-            with Cluster("web-servers-sg"):
-                ec2_group = [EC2("nginx"),
-                            EC2("apache")]
+        with Cluster("web-servers-subnet-1"):
+            with Cluster("web-servers-sg-1"):
+                web_servers_1 = [EC2("nginx"),
+                                EC2("apache")]        
+        with Cluster("web-servers-subnet-2"):
+            with Cluster("web-servers-sg-2"):
+                web_servers_2 = [EC2("nginx"),
+                                EC2("apache")]
+    alb >> web_servers_1
+    alb >> web_servers_2
 
-    # memcached = ElastiCache("memcached")
-
-    alb >> ec2_group
-    # dns >> alb >> ec2_group
-    # ec2_group >> memcached

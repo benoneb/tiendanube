@@ -1,3 +1,4 @@
 tfplan
 tfdestroy
 .terraform/
+terraform.*

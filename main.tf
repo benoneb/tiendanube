@@ -325,10 +325,21 @@ module "alb" {
 # ALB provisioning by ASG - Modules
 ##################################################################
 
-resource "aws_iam_service_linked_role" "autoscaling" {
+resource "aws_iam_service_linked_role" "autoscaling_1" {
   aws_service_name = "autoscaling.amazonaws.com"
   description      = "A service linked role for autoscaling"
-  custom_suffix    = "something"
+  custom_suffix    = "web-server-1"
+
+  # Sometimes good sleep is required to have some IAM resources created before they can be used
+  provisioner "local-exec" {
+    command = "sleep 10"
+  }
+}
+
+resource "aws_iam_service_linked_role" "autoscaling_2" {
+  aws_service_name = "autoscaling.amazonaws.com"
+  description      = "A service linked role for autoscaling"
+  custom_suffix    = "web-server-2"
 
   # Sometimes good sleep is required to have some IAM resources created before they can be used
   provisioner "local-exec" {
@@ -378,12 +389,13 @@ module "web-server-launch-asg-alb" {
   # Auto scaling group
   asg_name                  = "web-servers-apache-asg"
   vpc_zone_identifier       = tolist(module.web-servers-vpc.public_subnets)
+  health_check_grace_period = 300
   health_check_type         = "EC2"
   min_size                  = 1
   max_size                  = 1
   desired_capacity          = 1
   wait_for_capacity_timeout = 0
-  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling.arn
+  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling_1.arn
   target_group_arns         = tolist(module.alb.target_group_arns)
 
   tags = [
@@ -452,12 +464,13 @@ module "web-server-nginx-launch-asg-alb" {
   # Auto scaling group
   asg_name                  = "web-servers-nginx-asg"
   vpc_zone_identifier       = tolist(module.web-servers-vpc.public_subnets)
+  health_check_grace_period = 300
   health_check_type         = "EC2"
   min_size                  = 1
   max_size                  = 1
   desired_capacity          = 1
   wait_for_capacity_timeout = 0
-  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling.arn
+  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling_2.arn
   target_group_arns         = tolist(module.alb.target_group_arns)
 
   tags = [
@@ -489,8 +502,13 @@ module "web-server-nginx-launch-asg-alb" {
 # ALB provisioning by ASG - No Modules
 ##################################################################
 
-resource "aws_iam_instance_profile" "web_server_profile" {
-  name = "web_server_profile"
+resource "aws_iam_instance_profile" "web_server_profile_1" {
+  name = "web_server_profile_1"
+  role = aws_iam_role.web_server_role.name
+}
+
+resource "aws_iam_instance_profile" "web_server_profile_2" {
+  name = "web_server_profile_2"
   role = aws_iam_role.web_server_role.name
 }
 
@@ -520,7 +538,7 @@ resource "aws_launch_configuration" "web-server-apache" {
   depends_on           = [module.web_servers_sg.this_security_group_id, aws_iam_role.web_server_role]
   image_id             = data.aws_ami.ubuntu_bionic.id
   instance_type        = "t2.micro"
-  iam_instance_profile = aws_iam_instance_profile.web_server_profile.id
+  iam_instance_profile = aws_iam_instance_profile.web_server_profile_1.id
   key_name             = "provisioning-key"
   security_groups      = [module.web_servers_sg.this_security_group_id]
   user_data            = data.template_file.apache.rendered
@@ -531,7 +549,7 @@ resource "aws_launch_configuration" "web-server-nginx" {
   depends_on           = [module.web_servers_sg.this_security_group_id, aws_iam_role.web_server_role]
   image_id             = data.aws_ami.ubuntu_bionic.id
   instance_type        = "t2.micro"
-  iam_instance_profile = aws_iam_instance_profile.web_server_profile.id
+  iam_instance_profile = aws_iam_instance_profile.web_server_profile_2.id
   key_name             = "provisioning-key"
   security_groups      = [module.web_servers_sg.this_security_group_id]
   user_data            = data.template_file.nginx.rendered
@@ -614,3 +632,7 @@ resource "aws_lb_listener" "web-server-Listener" {
     type             = "forward"
   }
 }
+
+##################################################################
+# TODO! Add Cloudwatch basic monitoring, thresholds, and alarms
+##################################################################
