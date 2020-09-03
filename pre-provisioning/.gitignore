@@ -1,0 +1,4 @@
+tfplan
+tfdestroy
+.terraform/
+.terraform*
