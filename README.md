@@ -13,7 +13,7 @@ terraform validate
 tflint --deep
 terraform plan -out tfplan
 terraform apply tfplan && \
-cd ../provisioning
+cd ..
 ## Check if Terraform configurations are properly formatted  
 if [[ -n "$(terraform fmt -write=false)" ]]; then echo "Some terraform files need be formatted"; terraform fmt || exit 1; fi  
 ## terraform init  

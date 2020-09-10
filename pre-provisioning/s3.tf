@@ -6,7 +6,7 @@ data "aws_canonical_user_id" "current" {}
 
 # 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket        = "benone-terraform-state-1"
+  bucket = "benone-terraform-state-1"
   # acl           = "private"
   force_destroy = true
   versioning {
@@ -63,7 +63,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
 
 # ALB bucket logs
 resource "aws_s3_bucket" "alb_logs_state" {
-  bucket        = "benone-web-servers-alb-logs"
+  bucket = "benone-web-servers-alb-logs"
   # acl           = "private"
   force_destroy = true
   versioning {
